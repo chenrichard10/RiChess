@@ -1,10 +1,10 @@
 """ Chess Engine """
 import chess
+import math 
 # Initial chess board
 BOARD = chess.Board()
 # Use legal moves to count mobility 
 colour = 1
-user_move = " "
 
 def generate_piece_count(board, colour):
     """ Calculates and returns a dictionary with piece counts """
@@ -18,7 +18,7 @@ def generate_piece_count(board, colour):
     rook = fen.count('r') if colour == 0 else fen.count('R')
     knight = fen.count('n') if colour == 0 else fen.count('N')
     bishop = fen.count('b') if colour == 0 else fen.count('B')
-    pawn = fen.count('p') if colour == 0 else fen.count('p')
+    pawn = fen.count('p') if colour == 0 else fen.count('P')
     # Setting dictionary keys
     pieces['King'] = king
     pieces['Queen'] = queen
@@ -35,55 +35,73 @@ def count_doubled(board, colour):
 
 def evaluate_position(board, colour, legal_moves):
     """ Evaluation function for chess game """
-    white_pieces = generate_piece_count(board, colour)
-    black_pieces = generate_piece_count(board, colour)
+    white_pieces = generate_piece_count(board, 1)
+    #print("White Pieces:")
+    #print(white_pieces)
+    black_pieces = generate_piece_count(board, 0)
+    #print("Black Pieces:")
+    #print(black_pieces)
     material_score = 200  * (white_pieces['King'] - black_pieces['King']) \
                   + 9 * (white_pieces['Queen'] - black_pieces['Queen']) \
                   + 5 * (white_pieces['Rook'] - black_pieces['Rook']) \
                   + 3 * (white_pieces['Knight'] - black_pieces['Knight']) \
                   + 3 * (white_pieces['Bishop'] - black_pieces['Bishop']) \
                   + 1 * (white_pieces['Pawn'] - black_pieces['Pawn'])
-    mobility_score = 0.1 * legal_moves
-    evaluation = mobility_score + (material_score) * colour
+    mobility_score = 0.001 * legal_moves
+    #print("Score")
+    #print(material_score)
+    evaluation = mobility_score + material_score * colour
     return evaluation
 
-def negamax(depth, board, colour):
+def negamax(depth, board, alpha, beta, colour):
     if depth == 0:
         return evaluate_position(board, colour, board.legal_moves.count()) * colour
-    max_score = -1e9
+    value = -1e9
     temp = board
     #print(board)
     for move in board.legal_moves:
         temp.push(move)
-        score = -negamax(depth - 1, temp, -colour)
-        if score > max_score:
-            max_score = score
+        value = -negamax(depth - 1, temp, -beta, -alpha, -colour)
+        alpha = max(alpha, value)
         temp.pop()
-    return max_score
+        if alpha >= beta:
+            break
+
+    return value
 
 def generate_top_moves(board, colour):
     scores = []
     for move in board.legal_moves:
         board.push(move)
         #print(board)
-        scores.append({'move': move, 'score': negamax(2, board, colour*-1)})
+        scores.append({'move': move, 'score': negamax(2, board, -math.inf, math.inf, -colour)})
         board.pop()
 
-    newlist = sorted(scores, key=lambda k: k['score']) 
-    return newlist[-3:]
+    newlist = sorted(scores, key=lambda k: k['score'])
+    return newlist
 
 # Testing Function
-while(user_move != "quit"):
-    print("Enter your move:")
-    user_move = input()
+def test(user_move):
+    """ function used for testing game board and evaluation """
+    user_move = "temp"
+    while user_move != "quit":
+        print("Enter your move:")
+        user_move = input()
 
-    if user_move == 'eval':
-        print(generate_top_moves(BOARD, colour))
-        continue
+        if user_move == 'eval':
+            print(generate_top_moves(BOARD, -colour))
+            continue
 
-    try:
-        BOARD.push_san(user_move)
-    except:
-        print("Invalid move!")
-    print(BOARD)
-    colour *= -1
+        if user_move == 'legal':
+            for move in BOARD.legal_moves:
+                print(move)
+                continue
+        try:
+            BOARD.push_san(user_move)
+        except:
+            print("Invalid move!")
+        print(BOARD)
+
+if __name__ == "__main__":
+    test("move")
+
