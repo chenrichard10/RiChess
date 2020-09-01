@@ -1,2 +1,3 @@
 # RiChess
-First attempt a chess engine
+---
+This is my first attempt at making a chess engine.

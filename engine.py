@@ -1,10 +1,10 @@
 """ Chess Engine """
+import math
 import chess
-import math 
+
 # Initial chess board
 BOARD = chess.Board()
-# Use legal moves to count mobility 
-colour = 1
+# Use legal moves to count mobility
 
 def generate_piece_count(board, colour):
     """ Calculates and returns a dictionary with piece counts """
@@ -30,6 +30,7 @@ def generate_piece_count(board, colour):
 
 
 def count_doubled(board, colour):
+    """ Function counts doubled pawns """
     pass
 
 
@@ -47,13 +48,14 @@ def evaluate_position(board, colour, legal_moves):
                   + 3 * (white_pieces['Knight'] - black_pieces['Knight']) \
                   + 3 * (white_pieces['Bishop'] - black_pieces['Bishop']) \
                   + 1 * (white_pieces['Pawn'] - black_pieces['Pawn'])
-    mobility_score = 0.001 * legal_moves
+    mobility_score = 0.01 * legal_moves
     #print("Score")
     #print(material_score)
     evaluation = mobility_score + material_score * colour
     return evaluation
 
 def negamax(depth, board, alpha, beta, colour):
+    """ Negamax decision tree """
     if depth == 0:
         return evaluate_position(board, colour, board.legal_moves.count()) * colour
     value = -1e9
@@ -70,19 +72,21 @@ def negamax(depth, board, alpha, beta, colour):
     return value
 
 def generate_top_moves(board, colour):
+    """ Generates a list of top moves """
     scores = []
     for move in board.legal_moves:
         board.push(move)
         #print(board)
-        scores.append({'move': move, 'score': negamax(2, board, -math.inf, math.inf, -colour)})
+        scores.append({'move': move, 'score': negamax(4, board, -math.inf, math.inf, -colour)})
         board.pop()
 
-    newlist = sorted(scores, key=lambda k: k['score'])
-    return newlist
+    newlist = sorted(scores, key=lambda k: k['score'], reverse=True)
+    return newlist[:3]
 
 # Testing Function
 def test(user_move):
     """ function used for testing game board and evaluation """
+    colour = 1
     user_move = "temp"
     while user_move != "quit":
         print("Enter your move:")
@@ -98,10 +102,9 @@ def test(user_move):
                 continue
         try:
             BOARD.push_san(user_move)
-        except:
+        except AttributeError:
             print("Invalid move!")
         print(BOARD)
 
 if __name__ == "__main__":
     test("move")
-
