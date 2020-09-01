@@ -9,5 +9,13 @@ start = time.process_time()
 engine.generate_top_moves(board, 1)
 #print(time.process_time() - start)
 
+# Test1: Testing for scholar's mate
 scholar_board = chess.Board()
-# Test1 
+scholar_board.push_san("e4")
+scholar_board.push_san("e5")
+scholar_board.push_san("Bc4")
+scholar_board.push_san("Nc6")
+scholar_board.push_san("Qf3")
+print(engine.generate_top_moves(scholar_board, -1))
+scholar_board.push_san("a6")
+print(engine.generate_top_moves(scholar_board, 1))

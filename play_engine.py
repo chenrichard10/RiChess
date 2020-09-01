@@ -12,7 +12,7 @@ def start_game(colour):
     print("\n")
 
     while not board.is_checkmate():
-        if turn % 2 == colour:
+        if turn % 2 == 1:
             #top_moves = engine.generate_top_moves(board, colour)
             #print("Top moves:")
             #print(top_moves)

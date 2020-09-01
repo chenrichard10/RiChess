@@ -62,7 +62,7 @@ def evaluate_position(board, colour, legal_moves):
 def negamax(depth, board, alpha, beta, colour):
     """ Negamax decision tree """
     if board.is_game_over():
-        return eval(board.result()) * colour * 10000 + depth
+        return eval(board.result())  * 10000 * colour + depth
     
     elif depth == 0:
         return evaluate_position(board, colour, board.legal_moves.count())
@@ -90,7 +90,7 @@ def generate_top_moves(board, colour):
         board.pop()
 
     newlist = sorted(scores, key=lambda k: k['score'], reverse=True)
-    return newlist
+    return newlist[-3:][::-1]
 
 # Testing Function
 def test(user_move):
@@ -102,7 +102,7 @@ def test(user_move):
         user_move = input()
 
         if user_move == 'eval':
-            print(generate_top_moves(BOARD, -colour))
+            print(generate_top_moves(BOARD, colour))
             continue
 
         if user_move == 'legal':
