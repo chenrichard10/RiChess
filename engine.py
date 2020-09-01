@@ -1,33 +1,10 @@
 """ Chess Engine """
 import math
 import chess
-
+import opening
 # Initial chess board
 BOARD = chess.Board()
 # Use legal moves to count mobility
-
-def generate_piece_count(board, colour):
-    """ Calculates and returns a dictionary with piece counts """
-    # Create a dictionary to store values
-    pieces = {}
-    # Split the FEN board to just the pieces
-    fen = board.fen().split(" ")[0]
-    # Counting pieces depeneding on colour
-    king = fen.count('k') if colour == 0 else fen.count('K')
-    queen = fen.count('q') if colour == 0 else fen.count('Q')
-    rook = fen.count('r') if colour == 0 else fen.count('R')
-    knight = fen.count('n') if colour == 0 else fen.count('N')
-    bishop = fen.count('b') if colour == 0 else fen.count('B')
-    pawn = fen.count('p') if colour == 0 else fen.count('P')
-    # Setting dictionary keys
-    pieces['King'] = king
-    pieces['Queen'] = queen
-    pieces['Rook'] = rook
-    pieces['Knight'] = knight
-    pieces['Bishop'] = bishop
-    pieces['Pawn'] = pawn
-    return pieces
-
 
 def count_doubled(board, colour):
     """ Function counts doubled pawns """
@@ -36,34 +13,66 @@ def count_doubled(board, colour):
 
 def evaluate_position(board, colour, legal_moves):
     """ Evaluation function for chess game """
-    white_pieces = generate_piece_count(board, 1)
-    #print("White Pieces:")
-    #print(white_pieces)
-    black_pieces = generate_piece_count(board, 0)
-    #print("Black Pieces:")
-    #print(black_pieces)
-    material_score = 200  * (white_pieces['King'] - black_pieces['King']) \
-                  + 9 * (white_pieces['Queen'] - black_pieces['Queen']) \
-                  + 5 * (white_pieces['Rook'] - black_pieces['Rook']) \
-                  + 3 * (white_pieces['Knight'] - black_pieces['Knight']) \
-                  + 3 * (white_pieces['Bishop'] - black_pieces['Bishop']) \
-                  + 1 * (white_pieces['Pawn'] - black_pieces['Pawn'])
+    white = chess.WHITE
+    black = chess.BLACK
+    pieces = {}
+    # Counting pieces depeneding on colour
+    wking = bin(board.occupied_co[white] & board.kings).count('1')
+    wqueen = bin(board.occupied_co[white] & board.queens).count('1')
+    wrook = bin(board.occupied_co[white] & board.rooks).count('1')
+    wknight = bin(board.occupied_co[white] & board.knights).count('1')
+    wbishop = bin(board.occupied_co[white] & board.bishops).count('1')
+    wpawn = bin(board.occupied_co[white] & board.pawns).count('1')
+    bking = bin(board.occupied_co[black] & board.kings).count('1')
+    bqueen = bin(board.occupied_co[black] & board.queens).count('1')
+    brook = bin(board.occupied_co[black] & board.rooks).count('1')
+    bknight = bin(board.occupied_co[black] & board.knights).count('1')
+    bbishop = bin(board.occupied_co[black] & board.bishops).count('1')
+    bpawn = bin(board.occupied_co[black] & board.pawns).count('1')
+
+    material_score = 200  * (wking - bking) \
+                      + 9 * (wqueen - bqueen) \
+                      + 5 * (wrook - brook) \
+                      + 3.3 * (wbishop - bbishop) \
+                      + 3.2 * (wknight - bknight) \
+                      + 1 * (wpawn - bpawn)
+    # Assigning piece square scores 
+    """
+    pawnsq = sum([opening.WPAWN_SCORE[i] for i in board.pieces(chess.PAWN, chess.WHITE)])
+    pawnsq = pawnsq + sum([-opening.BPAWN_SCORE[i] for i in board.pieces(chess.PAWN, chess.BLACK)])
+    knightsq = sum([opening.WKNIGHT_SCORE[i] for i in board.pieces(chess.KNIGHT, chess.WHITE)])
+    knightsq = knightsq + sum([-opening.BKNIGHT_SCORE[i] for i in board.pieces(chess.KNIGHT, chess.BLACK)])
+    bishopsq = sum([opening.WBISHOP_SCORE[i] for i in board.pieces(chess.BISHOP, chess.WHITE)])
+    bishopsq = bishopsq + sum([-opening.BBISHOP_SCORE[i] for i in board.pieces(chess.BISHOP, chess.BLACK)])
+    rooksq = sum([opening.WROOK_SCORE[i] for i in board.pieces(chess.ROOK, chess.WHITE)]) 
+    rooksq = rooksq + sum([-opening.BROOK_SCORE[i] for i in board.pieces(chess.ROOK, chess.BLACK)])
+    queensq = sum([opening.WQUEEN_SCORE[i] for i in board.pieces(chess.QUEEN, chess.WHITE)]) 
+    queensq = queensq + sum([-opening.BQUEEN_SCORE[i] for i in board.pieces(chess.QUEEN, chess.BLACK)])
+    kingsq = sum([opening.WKING_SCORE[i] for i in board.pieces(chess.KING, chess.WHITE)]) 
+    kingsq = kingsq + sum([-opening.BKING_SCORE[i] for i in board.pieces(chess.KING, chess.BLACK)])
+    """
     mobility_score = 0.01 * legal_moves
     #print("Score")
     #print(material_score)
-    evaluation = mobility_score + material_score * colour
-    return evaluation
+    # Totalling Evaluation score 
+    evaluation = (mobility_score + material_score) * colour
+    #evaluation = material_score + pawnsq + knightsq + bishopsq+ rooksq+ queensq + kingsq
+    return evaluation 
 
 def negamax(depth, board, alpha, beta, colour):
     """ Negamax decision tree """
-    if depth == 0:
-        return evaluate_position(board, colour, board.legal_moves.count()) * colour
-    value = -1e9
+    if board.is_game_over():
+        return eval(board.result()) * colour * 10000 + depth
+    
+    elif depth == 0:
+        return evaluate_position(board, colour, board.legal_moves.count())
+    
+    value = -math.inf
     temp = board
     #print(board)
     for move in board.legal_moves:
         temp.push(move)
-        value = -negamax(depth - 1, temp, -beta, -alpha, -colour)
+        value = max(value, -negamax(depth - 1, temp, -beta, -alpha, -colour))
         alpha = max(alpha, value)
         temp.pop()
         if alpha >= beta:
@@ -71,17 +80,17 @@ def negamax(depth, board, alpha, beta, colour):
 
     return value
 
+
 def generate_top_moves(board, colour):
     """ Generates a list of top moves """
     scores = []
     for move in board.legal_moves:
         board.push(move)
-        #print(board)
         scores.append({'move': move, 'score': negamax(4, board, -math.inf, math.inf, -colour)})
         board.pop()
 
     newlist = sorted(scores, key=lambda k: k['score'], reverse=True)
-    return newlist[:3]
+    return newlist
 
 # Testing Function
 def test(user_move):
@@ -105,6 +114,9 @@ def test(user_move):
         except AttributeError:
             print("Invalid move!")
         print(BOARD)
+        
+        colour *= -1
+        print(colour)
 
 if __name__ == "__main__":
     test("move")

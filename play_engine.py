@@ -13,8 +13,11 @@ def start_game(colour):
 
     while not board.is_checkmate():
         if turn % 2 == colour:
-            move = input("Your move:")
+            #top_moves = engine.generate_top_moves(board, colour)
+            #print("Top moves:")
+            #print(top_moves)
             try:
+                move = input("Your move:")
                 board.push_san(move)
                 print(board)
                 print("\n")
@@ -22,6 +25,7 @@ def start_game(colour):
                 print("Illegal move!")
                 continue
         else:
+            """
             print("     Thonking.....\n \
                     ▒▒▒▒▒▒▒▒▄▄▄▄▄▄▄▄▒▒▒▒▒▒▒▒\n \
                     ▒▒▒▒▒▄█▀▀░░░░░░▀▀█▄▒▒▒▒▒\n \
@@ -36,13 +40,16 @@ def start_game(colour):
                     ▒▒▒█░░░░░░▀█░░░░░▄█▀▒▒▒▒\n \
                     ▒▒▒█▄░░░░░▀█▄▄▄█▀▀▒▒▒▒▒▒\n \
                     ▒▒▒▒▀▀▀▀▀▀▀▒▒▒▒▒▒▒▒▒▒▒▒▒")
+            """
             top_moves = engine.generate_top_moves(board, -colour)
+            print("Top moves:")
+            print(top_moves)
             board.push(top_moves[0]['move'])
             print(board)
             print("\n")
             print("Engine's move:" + str(top_moves[0]['move']) + "\n")
 
-        colour *= 1
+        colour *= -1
         turn += 1
 
     if turn % 2 == colour:
