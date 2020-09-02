@@ -36,6 +36,7 @@ def evaluate_position(board, colour, legal_moves):
                       + 3.3 * (wbishop - bbishop) \
                       + 3.2 * (wknight - bknight) \
                       + 1 * (wpawn - bpawn)
+                      
     # Assigning piece square scores 
     """
     pawnsq = sum([opening.WPAWN_SCORE[i] for i in board.pieces(chess.PAWN, chess.WHITE)])
@@ -86,7 +87,7 @@ def generate_top_moves(board, colour):
     scores = []
     for move in board.legal_moves:
         board.push(move)
-        scores.append({'move': move, 'score': negamax(4, board, -math.inf, math.inf, -colour)})
+        scores.append({'move': move, 'score': negamax(3, board, -math.inf, math.inf, -colour)})
         board.pop()
 
     newlist = sorted(scores, key=lambda k: k['score'], reverse=True)
